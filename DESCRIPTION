@@ -1,11 +1,20 @@
 Package: SLIMFinderR
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Short Linear Motif Search Using QSLIMFinder, Protein Interaction Network and Binding Domain Inference
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Vitalii Kleshchevnikov
+Maintainer: Vitalii Kleshchevnikov <vk7@sanger.ac.uk>
+Authors@R: c(person("Vitalii", "Kleshchevnikov",, "vk7@sanger.ac.uk", role = c("aut", "cre")))
+Description: This package lets you predict short linear motifs (SLiMs) that mediate
+    interactions between proteins alongside their likely recognition domains. 
+    This package accompanies this research paper ????. 
+    It uses protein interaction data to define sets of proteins likely to contain 
+    SLiMs recognised by one protein. It uses permutation-based method to identify 
+    protein domains likely to mediate interactions of that protein.
+License: Apache License 2.0
 Encoding: UTF-8
 LazyData: true
+Depends: MItools, NetFeaturePval, ProtDomSeq
+Imports: rtracklayer, BiocGenerics, GenomicRanges
+Remotes: vitkl/MItools, vitkl/NetFeaturePval, vitkl/ProtDomR
+RoxygenNote: 6.1.1
