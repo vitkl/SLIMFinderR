@@ -35,6 +35,8 @@ benchmarkMotifsROC = function(res, data_type = c("both","query", "all")[1],
 
   auc.perf = ROCR::performance(pred, measure = single_metric)
 
+  if(ROCR_data) return(list(ROC_prediction = pred, ROC_performance = perf, ROC_auc.performance = auc.perf))
+
   if(is.null(text_args)) NULL else {
     text_args = unlist(strsplit(text_args, "\\|"))
   }
@@ -110,7 +112,6 @@ benchmarkMotifsROC = function(res, data_type = c("both","query", "all")[1],
                          paste0(legend_args, collapse = ","), ")")
     eval(parse(text = legend_text))
   }
-  if(ROCR_data) return(list(ROC_prediction = pred, ROC_performance = perf, ROC_auc.performance = auc.perf))
 }
 
 ##' @rdname benchmarkMotifsROC

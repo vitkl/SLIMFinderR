@@ -568,7 +568,7 @@ queryOCCByMCOL = function(res, keytype = "IDs_domain_human", key = "IPR032440"){
 ##' @name mBenchmarkMotifs
 ##' @author Vitalii Kleshchevnikov
 ##' @param datasets character vector, names of the datasets ("Vidal" in "./SLIMFinder_Vidal/result/occurence.txt" or "" in "./SLIMFinder/result/occurence.txt")
-##' @param descriptions character vector, description of the datasets (title of the ROC plot)
+##' @param descriptions character vector, description of the datasets (title of venn diagram plot)
 ##' @param dir character, base directory. For example, "./" in "./SLIMFinder_Vidal/result/occurence.txt"
 ##' @return list of objects of class \code{(benchmarkMotifsResult)}
 ##' @import GenomicRanges
