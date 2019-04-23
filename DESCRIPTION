@@ -1,7 +1,7 @@
 Package: SLIMFinderR
 Type: Package
 Title: Short Linear Motif Search Using QSLIMFinder, Protein Interaction Network and Binding Domain Inference
-Version: 0.1.0
+Version: 0.1.1
 Author: Vitalii Kleshchevnikov
 Maintainer: Vitalii Kleshchevnikov <vk7@sanger.ac.uk>
 Authors@R: c(person("Vitalii", "Kleshchevnikov",, "vk7@sanger.ac.uk", role = c("aut", "cre")))

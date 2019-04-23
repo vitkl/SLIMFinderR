@@ -590,7 +590,7 @@ mBenchmarkMotifs = function(datasets = c("qslimfinder.Full_IntAct3.FALSE"),
 
     occurence_file = paste0(dir, dataset, "/result/occurence.txt")
     main_file = paste0(dir, dataset, "/result/main_result.txt")
-    motif_setup = paste0(dir,"processed_data_files/QSLIMFinder_instances_h2v_", dataset, "_clust",motif_setup_month,".RData")
+    motif_setup = paste0(dir,"/QSLIMFinder_instances_h2v_", dataset, "_clust", motif_setup_month,".RData")
 
     # if only viral protein were searched - all_res_excl_query =F
     #if(grepl("all_viral_interaction", dataset)) all_res_excl_query = F

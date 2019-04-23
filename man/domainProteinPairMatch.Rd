@@ -21,7 +21,7 @@ domainProteinPairMatch(InteractionSubsetFASTA_list, domain_res,
 
 \item{query_domains_only}{If TRUE interacting partners of a seed that are taken from non_query_domain_res must be predicted to interact with a seed using domains predicted for query. Used only when non_query_domain_res is not NULL}
 
-\item{remove}{logical, remove and return InteractionSubsetFASTA_list or just show which sequence and interaction sets have a protein in the set2 associated with domain that is contained in the protein in the name.}
+\item{remove}{logical, remove and return InteractionSubsetFASTA_list or just show which sequence and interaction sets have a protein in the set2 associated with domain in the protein in the name of InteractionSubsetFASTA_list entry.}
 }
 \value{
 object of class InteractionSubsetFASTA_list filtered for matching protein and containing: FASTA sequences for interacting proteins, molecular interaction data they correspond to. Each element of a list contains input for individual QSLIMFinder run.

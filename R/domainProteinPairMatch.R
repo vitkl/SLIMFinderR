@@ -7,7 +7,7 @@
 ##' @param non_query_domains_N the number of non-query proteins with predicted domains for each dataset. Used only when non_query_domain_res is not NULL
 ##' @param non_query_set_only If TRUE interacting partners of a seed are taken only from non_query_domain_res, if FALSE - both from non_query_domain_res and domain_res. Used only when non_query_domain_res is not NULL
 ##' @param query_domains_only If TRUE interacting partners of a seed that are taken from non_query_domain_res must be predicted to interact with a seed using domains predicted for query. Used only when non_query_domain_res is not NULL
-##' @param remove logical, remove and return InteractionSubsetFASTA_list or just show which sequence and interaction sets have a protein in the set2 associated with domain that is contained in the protein in the name.
+##' @param remove logical, remove and return InteractionSubsetFASTA_list or just show which sequence and interaction sets have a protein in the set2 associated with domain in the protein in the name of InteractionSubsetFASTA_list entry.
 ##' @return object of class InteractionSubsetFASTA_list filtered for matching protein and containing: FASTA sequences for interacting proteins, molecular interaction data they correspond to. Each element of a list contains input for individual QSLIMFinder run.
 ##' @import data.table
 ##' @import Biostrings
@@ -47,16 +47,19 @@ domainProteinPairMatch = function(InteractionSubsetFASTA_list, domain_res, non_q
   # create variable to be filled
   which_to_keep = logical(length(interaction_subset))
   seq2keep = data.table(seq2keep = character(), name = character())
+
   # set up progress bar
   pb_check <- progress::progress_bar$new(
     format = "filtering datasets by enriched domains [:bar] :current/:total eta: :eta",
     total = length(interaction_subset), clear = FALSE, width= 80, show_after = 0)
+
   for (i in 1:length(interaction_subset)) {
     pb_check$tick()
     interaction_subset_x = interaction_subset[[i]]
     name = interaction_subset_x$name
     name = unlist(strsplit(name, ":"))
     which_nodeY = domain_res$data_with_pval[, eval(nodeY)] == name[1]
+
     if(sum(which_nodeY) >= 1){
       to_keep = domain_res$data_with_pval[which_nodeY, name[2] == eval(nodeX)]
       to_keep = isTRUE(sum(to_keep) >= 1 & is.logical(to_keep))
@@ -91,7 +94,9 @@ domainProteinPairMatch = function(InteractionSubsetFASTA_list, domain_res, non_q
                                                                   all_ids_set1 %in% eval(nodeX)]]
         }
         ids_set1 = unique(c(non_query_ids_set1, query_ids_set1))
+
       } else ids_set1 = non_query_ids_set1
+
       # update which datasets should be kept
       to_keep = to_keep &
         length(ids_set1) >= 1 &
@@ -125,5 +130,6 @@ domainProteinPairMatch = function(InteractionSubsetFASTA_list, domain_res, non_q
     InteractionSubsetFASTA_list$interaction_subset = InteractionSubsetFASTA_list$interaction_subset[which_to_keep]
     InteractionSubsetFASTA_list$length = length(InteractionSubsetFASTA_list$fasta_subset_list)
     return(InteractionSubsetFASTA_list)
+
   } else return(which_to_keep)
 }

@@ -11,6 +11,7 @@ PPInetwork2SLIMFinder(dataset_name = "SLIMFinder",
   options = "dismask=T consmask=F cloudfix=T probcut=0.3 minwild=0 maxwild=2 slimlen=5 alphahelix=F maxseq=1500 savespace=1 iuchdir=T",
   domain_res_file = "./processed_data_files/what_we_find_VS_ELM_clust20171019.RData",
   domain_results_obj = "res_count", center_domains = F,
+  filter_by_domain = F,
   fasta_path = "./data_files/all_human_viral_proteins.fasta",
   main_set_only = F, domain_pvalue_cutoff = 1,
   SLIMFinder_dir = paste0("./", dataset_name, "/"),
@@ -26,7 +27,7 @@ PPInetwork2SLIMFinder(dataset_name = "SLIMFinder",
   non_query_set_only = c(main_set_only), query_domains_only = T)
 }
 \arguments{
-\item{dataset_name}{refer to \code{\link[MItools]{mBenchmarkMotifs}}}
+\item{dataset_name}{refer to \code{\link[PItools]{mBenchmarkMotifs}}}
 
 \item{interaction_main_set}{clean_MItab class, use this set of protein interactions to construct QSLIMFinder datasets}
 
@@ -41,6 +42,8 @@ PPInetwork2SLIMFinder(dataset_name = "SLIMFinder",
 \item{domain_results_obj}{which object contains domain enrichment results in \code{domain_res_file}, XYZinteration_XZEmpiricalPval?}
 
 \item{center_domains}{logical, center QSLIMFinder datasets at domains?}
+
+\item{filter_by_domain}{logical, filter by domain? If FALSE this function does not use \code{domain_res_file}.}
 
 \item{fasta_path}{relative path (from the project folder) to the FASTA file containing sequences for all proteins in \code{interaction_main_set} and \code{interaction_query_set}}
 

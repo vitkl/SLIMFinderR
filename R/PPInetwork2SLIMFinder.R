@@ -2,7 +2,7 @@
 ##' @rdname PPInetwork2SLIMFinder
 ##' @name PPInetwork2SLIMFinder
 ##' @author Vitalii Kleshchevnikov
-##' @param dataset_name refer to \code{\link[MItools]{mBenchmarkMotifs}}
+##' @param dataset_name refer to \code{\link[PItools]{mBenchmarkMotifs}}
 ##' @param interaction_main_set clean_MItab class, use this set of protein interactions to construct QSLIMFinder datasets
 ##' @param interaction_query_set  clean_MItab class, use this set of protein interactions as a query (+ add to the QSLIMFinder datasets). Both interaction sets have shared seed proteins. SLIMFinder \code{analysis_type} also requires this option because it add proteins from these interactions to the SLIMFinder datasets
 ##' @param analysis_type "qslimfinder" or "slimfinder"
@@ -10,6 +10,7 @@
 ##' @param domain_res_file relative path to domain enrichment results RData
 ##' @param domain_results_obj which object contains domain enrichment results in \code{domain_res_file}, XYZinteration_XZEmpiricalPval?
 ##' @param center_domains logical, center QSLIMFinder datasets at domains?
+##' @param filter_by_domain logical, filter by domain? If FALSE this function does not use \code{domain_res_file}.
 ##' @param fasta_path relative path (from the project folder) to the FASTA file containing sequences for all proteins in \code{interaction_main_set} and \code{interaction_query_set}
 ##' @param main_set_only logical, If TRUE sequence sets for motif search contain only proteins from \code{interaction_main_set}. If FALSE, non-query proteins from \code{interaction_query_set} are also included. Argument for \code{\link{listInteractionSubsetFASTA}}
 ##' @param domain_pvalue_cutoff construct SLIMFinder datasets using interactions of proteins that contain domain associated to protein in the query set with p-value \code{domain_pvalue_cutoff} or lower
@@ -268,7 +269,7 @@ PPInetwork2SLIMFinder = function(dataset_name = "SLIMFinder",
                                  options = "dismask=T consmask=F cloudfix=T probcut=0.3 minwild=0 maxwild=2 slimlen=5 alphahelix=F maxseq=1500 savespace=1 iuchdir=T",
                                  domain_res_file = "./processed_data_files/what_we_find_VS_ELM_clust20171019.RData",
                                  domain_results_obj = "res_count",
-                                 center_domains = F,
+                                 center_domains = F, filter_by_domain = F,
                                  fasta_path = "./data_files/all_human_viral_proteins.fasta",
                                  main_set_only = F,
                                  domain_pvalue_cutoff = 1,
@@ -296,26 +297,36 @@ PPInetwork2SLIMFinder = function(dataset_name = "SLIMFinder",
   if(!grepl("clean_MItab",class(interaction_main_set))) stop("interaction_main_set is not of class clean_MItab27 or related clean_MItab class")
   if(!grepl("clean_MItab",class(interaction_query_set))) stop("interaction_query_set is not of class clean_MItab27 or related clean_MItab class")
 
-  # load the domain analysis results
-  domain_res_env = R.utils::env(load(domain_res_file))
-  domain_res = domain_res_env[[domain_results_obj]]
-  rm(domain_res_env)
+  #============================================================================
+  # load domain annotations and define query protein list (proteins_w_signif_domains)
+  if(filter_by_domain) {
+    #==========================================================================
+    # load the domain analysis results
+    domain_res_env = R.utils::env(load(domain_res_file))
+    domain_res = domain_res_env[[domain_results_obj]]
+    rm(domain_res_env)
+    # check class of the domain analysis results
+    if(!grepl("XYZinteration_XZEmpiricalPval",class(domain_res))) stop("domain_results_obj does not point to object of class XYZinteration_XZEmpiricalPval")
 
-  # domain enrichment results - non-query proteins
-  if(!is.null(non_query_domain_results_obj)){
-    non_query_domain_res_env = R.utils::env(load(non_query_domain_res_file))
-    non_query_domain_res = non_query_domain_res_env[[non_query_domain_results_obj]]
-    rm(non_query_domain_res_env)
-  } else non_query_domain_res = NULL
+    # load domain enrichment results - non-query proteins
+    if(!is.null(non_query_domain_results_obj)){
+      non_query_domain_res_env = R.utils::env(load(non_query_domain_res_file))
+      non_query_domain_res = non_query_domain_res_env[[non_query_domain_results_obj]]
+      rm(non_query_domain_res_env)
+    } else non_query_domain_res = NULL
 
-  # check class of the domain analysis results
-  if(!grepl("XYZinteration_XZEmpiricalPval",class(domain_res))) stop("domain_results_obj does not point to object of class XYZinteration_XZEmpiricalPval")
+    # choose pvalue cutoff:
+    if(is.null(seed_list)){
+      eval(parse(text = paste0("proteins_w_signif_domains = unique(domain_res$data_with_pval[p.value <= domain_pvalue_cutoff, ", domain_res$nodes$nodeY,"])")))
+    } else proteins_w_signif_domains = seed_list
 
-  # choose pvalue cutoff:
-  if(is.null(seed_list)){
-    eval(parse(text = paste0("proteins_w_signif_domains = unique(domain_res$data_with_pval[p.value <= domain_pvalue_cutoff, ", domain_res$nodes$nodeY,"])")))
-  } else proteins_w_signif_domains = seed_list
+  } else {
+    #==========================================================================
+    # do not filter by domain
+    proteins_w_signif_domains = unique(interaction_query_set$data$IDs_interactor_A)
+  }
 
+  #============================================================================
   # load FASTA
   all.fasta = readAAStringSet(filepath = fasta_path, format = "fasta")
   # remove seed proteins with no FASTA
@@ -325,6 +336,7 @@ PPInetwork2SLIMFinder = function(dataset_name = "SLIMFinder",
   interaction_main_set = removeInteractionNoFASTA(interaction_main_set, all.fasta)
   interaction_query_set = removeInteractionNoFASTA(interaction_query_set, all.fasta)
 
+  #============================================================================
   # generates datasets (interactions for a single protein + FASTA of it's interactors from boths sets
   # removes seed proteins with no FASTA and with no interactions in both main and query sets
   forSLIMFinder = listInteractionSubsetFASTA(interaction_set1 = interaction_main_set,
@@ -333,7 +345,8 @@ PPInetwork2SLIMFinder = function(dataset_name = "SLIMFinder",
                                              fasta = all.fasta,
                                              single_interact_from_set2 = T, set1_only = main_set_only)
 
-  # keep only specific query proteins
+  #============================================================================
+  # keep only specific query proteins is query list provided
   if(!is.null(query_list)){
     to_keep = gsub("\\.","",tstrsplit(names(forSLIMFinder$fasta_subset_list), ":")[[2]]) %in% query_list
     if(sum(to_keep) == 0) stop("no datasets contain query proteins requested in query_list")
@@ -342,32 +355,46 @@ PPInetwork2SLIMFinder = function(dataset_name = "SLIMFinder",
     forSLIMFinder$length = length(forSLIMFinder$fasta_subset_list)
   }
 
+  #============================================================================
+  # filter QSLIMFinder datasets by domain
+  if(filter_by_domain){
 
-  # filter for only significant domain - query protein pair
-  domain_filt = copy(domain_res)
-  if(!is.null(non_query_domain_res)) non_query_domain_res$data_with_pval = non_query_domain_res$data_with_pval[p.value <= domain_pvalue_cutoff,]
-  domain_filt$data_with_pval = domain_filt$data_with_pval[p.value <= domain_pvalue_cutoff,]
+    # filter domain predictions for only significant domain - query protein pair
+    domain_filt = copy(domain_res)
+    if(!is.null(non_query_domain_res)) non_query_domain_res$data_with_pval = non_query_domain_res$data_with_pval[p.value <= domain_pvalue_cutoff,]
+    domain_filt$data_with_pval = domain_filt$data_with_pval[p.value <= domain_pvalue_cutoff,]
 
+    if(center_domains) {
 
-  # center at domains (combine seed protein networks if those have the same domain)
-  if(center_domains) forSLIMFinder = centerDomains(forSLIMFinder, domain_filt)
+      # center at domains (combine seed protein networks if those have the same domain)
+      forSLIMFinder = centerDomains(forSLIMFinder, domain_filt)
 
-  # filter for only sets where seed protein - query protein pair matches significant domain - query protein pair
-  if(!center_domains) forSLIMFinder = domainProteinPairMatch(forSLIMFinder, domain_filt,
-                                                             non_query_domain_res = non_query_domain_res,
-                                                             non_query_domains_N = non_query_domains_N,
-                                                             non_query_set_only = non_query_set_only,
-                                                             query_domains_only = query_domains_only, remove = T)
+    } else {
 
+      # do not center at domains
+      # filter for only sets where seed protein - query protein pair matches significant domain - query protein pair
+      # optionally filter non-query part of datasets: if(query_domains_only == TRUE)
+      forSLIMFinder = domainProteinPairMatch(forSLIMFinder, domain_filt,
+                                             non_query_domain_res = non_query_domain_res,
+                                             non_query_domains_N = non_query_domains_N,
+                                             non_query_set_only = non_query_set_only,
+                                             query_domains_only = query_domains_only, remove = T)
+
+    }
+  }
+
+  #============================================================================
   # filter datasets by size
   forSLIMFinder_Ready = filterInteractionSubsetFASTA_list(forSLIMFinder,
                                                           length_set1_min = length_set1_min, length_set2_min = length_set2_min)
 
+  #============================================================================
   # write datasets (fasta + query)
   if(!dir.exists(SLIMFinder_dir)) dir.create(SLIMFinder_dir)
   forSLIMFinder_file_list = writeInteractionSubsetFASTA_list(interactionFASTA_list = forSLIMFinder_Ready,
                                                              dir = SLIMFinder_dir, analysis_type = analysis_type)
 
+  #============================================================================
   # create bash commands that will run QSLIMFinder
   all_commands = mQSLIMFinderCommand(file_list = forSLIMFinder_file_list,
                                      slimpath = paste0(software_path, "slimsuite/tools/"),
@@ -381,6 +408,7 @@ PPInetwork2SLIMFinder = function(dataset_name = "SLIMFinder",
                                      analysis_type = analysis_type,
                                      write_log = write_log)
 
+  #============================================================================
   # group commands so that each run contains large number of sequences
   all_commands = groupQSLIMFinderCommand(commands = all_commands,
                                          InteractionSubsetFASTA_list = forSLIMFinder_Ready,
@@ -388,11 +416,13 @@ PPInetwork2SLIMFinder = function(dataset_name = "SLIMFinder",
                                          LSF_project_path = LSF_project_path,
                                          dataset_name = dataset_name, N_seq = N_seq, write_log = write_log)
 
+  #============================================================================
   runQSLIMFinder(commands_list = all_commands, file_list = forSLIMFinder_file_list,
                  onLSF = T, memory_step = memory_step,
                  memory_start = memory_start + memory_step,
                  Njobs_limit = Njobs_limit)
 
+  #============================================================================
   # read and bring together results
   resultdir = paste0(SLIMFinder_dir, "result/")
   if(!dir.exists(resultdir)) dir.create(resultdir)
@@ -403,6 +433,7 @@ PPInetwork2SLIMFinder = function(dataset_name = "SLIMFinder",
   QSLIMFinder_main_result = readQSLIMFinderMain(outputfile = forSLIMFinder_file_list$outputfile)
   fwrite(QSLIMFinder_main_result, paste0(resultdir, "main_result.txt"), sep = "\t")
 
+  #============================================================================
   # compare motif only if any were found and if asked (compare_motifs = T)
   if(sum(!is.na(QSLIMFinder_main_result$IC)) > 0 & compare_motifs){
     writePatternList(QSLIMFinder_main_result, filename = paste0(resultdir, "motifs.txt"))
@@ -425,6 +456,9 @@ PPInetwork2SLIMFinder = function(dataset_name = "SLIMFinder",
     #R.utils::gzip(paste0(resultdir, "comparimotif_with_self.compare.xgmml"), paste0(resultdir, "comparimotif_with_self.compare.xgmml.gz"))
   }
 
+  #============================================================================
+  # save result and R session
+
   # compress input, remove input, log and output
   tar(paste0(SLIMFinder_dir, "input.gz"),paste0(SLIMFinder_dir, "input/"), compression='gzip')
   #tar(paste0(SLIMFinder_dir, "log_dir.gz"),paste0(SLIMFinder_dir, "log_dir/"), compression='gzip')
@@ -434,12 +468,14 @@ PPInetwork2SLIMFinder = function(dataset_name = "SLIMFinder",
   unlink(paste0(SLIMFinder_dir, "output/"), recursive = T)
   unlink(paste0(SLIMFinder_dir, "sh_dir/"), recursive = T)
 
-  # save R session to RData
+  # save R session info
   AnalysisDate = Sys.Date()
   AnalysisSessionInfo = sessionInfo()
 
-  filename = paste0("./processed_data_files/QSLIMFinder_instances_h2v_",dataset_name,"_clust",format(Sys.Date(), "%Y%m"),".RData")
+  filename = paste0(SLIMFinder_dir,"/QSLIMFinder_instances_h2v_",dataset_name,"_clust",format(Sys.Date(), "%Y%m"),".RData")
   save(list = ls(envir = environment()), file=filename, envir = environment())
   rm(list = ls(envir = environment())[!ls(envir = environment()) %in% "filename"])
+
+  # return R session file name
   return(filename)
 }
