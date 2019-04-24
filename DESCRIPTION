@@ -14,7 +14,7 @@ Description: This package lets you predict short linear motifs (SLiMs) that medi
 License: Apache License 2.0
 Encoding: UTF-8
 LazyData: true
-Depends: remotes, PItools, NetFeaturePval, ProtDomSeq
-Imports: rtracklayer, BiocGenerics, GenomicRanges
+Depends: remotes, NetFeaturePval, ProtDomSeq
+Imports: rtracklayer, BiocGenerics, GenomicRanges, PItools
 Remotes: vitkl/PItools, vitkl/NetFeaturePval, vitkl/ProtDomSeq
 RoxygenNote: 6.1.1
