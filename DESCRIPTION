@@ -15,6 +15,6 @@ License: Apache License 2.0
 Encoding: UTF-8
 LazyData: true
 Depends: remotes, NetFeaturePval, ProtDomSeq
-Imports: rtracklayer, BiocGenerics, GenomicRanges, PItools
+Imports: rtracklayer, BiocGenerics, GenomicRanges, PItools, ROCR
 Remotes: vitkl/PItools, vitkl/NetFeaturePval, vitkl/ProtDomSeq
 RoxygenNote: 6.1.1
